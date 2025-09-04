@@ -1,7 +1,7 @@
 "use client";
-import { useState, useEffect } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { User, Heart, BookOpen, Mic, Phone, Home, Activity, UserCheck, Calendar, TrendingUp, AlertTriangle } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from "react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { User, Heart, BookOpen, Mic, Phone, Home, Activity, UserCheck, AlertTriangle } from 'lucide-react';
 
 const MentalHealthApp = () => {
   const [currentScreen, setCurrentScreen] = useState('studentDetails');
@@ -41,7 +41,7 @@ const MentalHealthApp = () => {
   };
 
   // Calculate mental health prediction - FIXED
-  const calculateMentalHealthPrediction = () => {
+  const calculateMentalHealthPrediction = useCallback(() => {
     // Ensure moodData exists and has entries with valid mood values
     const validMoodEntries = moodData.filter(entry => entry && typeof entry.mood === 'number' && entry.mood >= 1 && entry.mood <= 5);
     
@@ -57,11 +57,11 @@ const MentalHealthApp = () => {
     if (totalScore >= 15) return 'high';
     if (totalScore >= 8) return 'moderate';
     return 'low';
-  };
+  }, [moodData, phq9Score, journalEntries.length]);
 
   useEffect(() => {
     setMentalHealthStatus(calculateMentalHealthPrediction());
-  }, [moodData, phq9Score, journalEntries]);
+  }, [calculateMentalHealthPrediction]);
 
   // Student Details Screen
   const StudentDetailsScreen = () => {
@@ -474,7 +474,12 @@ const MentalHealthApp = () => {
           setCallDuration(prev => prev + 1);
         }, 1000);
       }
-      return () => clearInterval(interval);
+      return () => {
+        if (interval) {
+          clearInterval(interval);
+        }
+      };
+    // eslint-disable-next-line 
     }, [isCallActive]);
 
     const formatTime = (seconds) => {
